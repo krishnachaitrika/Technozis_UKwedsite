@@ -1,0 +1,401 @@
+{
+  "name": "wedsite",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        256
+      ],
+      "id": "d816d626-1e87-4ac2-a67f-c837e7fd55fd",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.firecrawl.dev/v1/scrape",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBearerAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"url\": \"https://technozis.com\",\n  \"formats\": [\"markdown\", \"html\"],\n  \"includeTags\": [\"img\", \"video\", \"source\", \"iframe\"],\n  \"onlyMainContent\": false\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        208,
+        256
+      ],
+      "id": "27f8b8ac-d092-4083-b5ab-f930edcb209e",
+      "name": "HTTP Request1",
+      "credentials": {
+        "httpBearerAuth": {
+          "id": "pHzHn6RRsXsWOTBx",
+          "name": "Bearer Auth account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatMistralCloud",
+      "typeVersion": 1,
+      "position": [
+        752,
+        256
+      ],
+      "id": "a512978e-5d3d-441a-b2bf-8ab65d7c33fd",
+      "name": "Mistral Cloud Chat Model",
+      "credentials": {
+        "mistralCloudApi": {
+          "id": "ZoddERJcHMPCNcGs",
+          "name": "Mistral Cloud account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        752,
+        576
+      ],
+      "id": "d7c7403e-f808-4742-99fb-726532109d52",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "685wBbSCTuHC09Vi",
+          "name": "Google Gemini(PaLM) Api account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=I'm going to give you the full content of a Technozis homepage. I want you to analyse it thoroughly and give me a detailed report covering the following:\n1. Content Audit — List every section on the page, what it says, what its purpose is, and whether the messaging is clear and professional.\n2. Messaging & Tone — Is the tone consistent throughout? Does it sound professional, enterprise-grade, and trustworthy? Point out any sections where the messaging feels weak, repetitive, or off-brand.\n3. Headlines & CTAs — Review every heading and call-to-action. Are they compelling? Are any missing? Is there a clear conversion path for the visitor?\n4. Content Gaps — What important information is missing that an enterprise client would expect to see — for example, client testimonials, case studies, pricing transparency, team profiles, or certifications detail?\n5. SEO & Keywords — Does the content target enterprise buyer keywords effectively? Which terms are used well and which are missing or underused?\n6. Visual-Content Balance — Based on the section structure, does the page feel too text-heavy or too sparse in any area? Where could infographics, icons, or stats add more impact?\n7. Overall Score & Priority Fixes — Give the page an overall content quality score out of 10 and list the top 5 improvements you would make in order of priority.\nHere is the full page content: [paste the page text here]",
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        928,
+        80
+      ],
+      "id": "b9d6b356-9fda-411f-b4cf-e19b185a123f",
+      "name": "Content Analyzer "
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are an HTML content analyzer.\n\nYou will receive a FULL HTML page.\n\n--------------------------------------------------\n\n🚨 STRICT RULES\n\n1. DO NOT change structure\n2. DO NOT change classes\n3. DO NOT remove sections\n4. ONLY fix text content\n\n--------------------------------------------------\n\n🚨 FIX THESE\n\n✔ Replace placeholder text  \n✔ Fix incorrect data  \n✔ Improve wording  \n\n--------------------------------------------------\n\nUSE EXACT DATA:\n\nCompany: Technozis\n\nAddress:\nDCG2-0210, DLF Corporate Green, Sector 74A,\nGurugram, Haryana, 122004\n\nEmail:\ncareers@technozis.com\n\nPhone:\n+91 9996600068\n\nRegions:\nIndia | Dubai | Australia | USA\n\n--------------------------------------------------\n\n🚨 REMOVE\n\n- Lorem ipsum  \n- generic phrases  \n- repeated content  \n\n--------------------------------------------------\n\n🚨 KEEP SAFE\n\n- Footer must remain  \n- Layout must remain  \n- No background changes  \n\n--------------------------------------------------\n\n🚨 OUTPUT RULES\n\n- Return FULL HTML\n- Start with <!DOCTYPE html>\n- NO explanation\n- NO markdown\n\n--------------------------------------------------\n\nINPUT:\n\n{{$json[\"html\"]}}",
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        944,
+        400
+      ],
+      "id": "d43b27ff-0cf1-4104-980f-be7d549bdcb1",
+      "name": "2 Content Analyzer"
+    },
+    {
+      "parameters": {
+        "jsCode": "const html = $json[\"text\"] || \"\";\n\nreturn [\n  {\n    binary: {\n      data: {\n        data: Buffer.from(html, \"utf8\").toString(\"base64\"),\n        mimeType: \"text/html\",\n        fileName: \"technizis-report.html\"\n      }\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1296,
+        400
+      ],
+      "id": "f78a51ae-421d-4b27-b329-a595b4669037",
+      "name": "Final wedpage 2"
+    },
+    {
+      "parameters": {
+        "jsCode": "const html = $json[\"text\"] || \"\";\n\nreturn [\n  {\n    binary: {\n      data: {\n        data: Buffer.from(html, \"utf8\").toString(\"base64\"),\n        mimeType: \"text/html\",\n        fileName: \"technizis-report.html\"\n      }\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1280,
+        80
+      ],
+      "id": "cd18e110-48b4-4137-906f-455c67b17466",
+      "name": "Final wedpage 1"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "🔧 PROMPT 1 — Page Generation Prompt\n\nIMPORTANT — Output Rules: Output ONLY raw HTML. The very first character must be < and the very last must be >. No explanations, no markdown, no backticks, no code fences, nothing outside the HTML tags whatsoever.\n\n\nBuild a complete single-page website for Technozis, a global enterprise technology company. Use Tailwind CSS via CDN, Inter font, black background, white text throughout. Favicon is at https://www.technozis.com/static/images/brand-logo-2.png. The accent color used everywhere for highlights, icons, borders and spans is blue — specifically #3B82F6.\n\nNAVBAR — Sticky at the top, semi-transparent dark background bg-gray-900/50 with backdrop blur and a subtle white bottom border. Left side has the Technozis logo from https://www.technozis.com/static/images/brand-logo.svg at height h-8, linking to index.html. Right side has five nav links in small gray text — Home page linking to index.html, Careers linking to careers_page.html, Business linking to business_page.html, About Us linking to About_page.html, Contact Us linking to contact_page.html. Each link highlights in blue on hover. On mobile, collapse the links and show a hamburger icon button that toggles a dropdown menu. Add a small JavaScript snippet that auto-highlights the currently active page link in blue based on the current URL filename.\n\nSECTION 1 — HERO — Full screen height, black background, with a full-cover background image from https://images.pexels.com/photos/8386440/pexels-photo-8386440.jpeg. Lay a dark overlay of bg-black/60 over the image. Content is centered over the image. Large bold heading (text-4xl on mobile, text-6xl on desktop, extra bold): \"Your Strategic Partner for Enterprise Digital Transformation\" — where the words \"Strategic Partner\" are in blue accent color. Below it a gray paragraph (text-lg, max-width 2xl, centered): \"Technozis partners with large organizations globally. We help enterprises implement and optimize ServiceNow and other enterprise platforms to streamline workflows, improve IT operations, and deliver measurable business outcomes.\"\n\nSECTION 2 — ANIMATED TECHNOLOGY LOGO SLIDER — Black background, bottom border in white/10. A small gray uppercase label above it reads: \"Trusted by enterprises across every major platform\". Below that, an infinitely auto-scrolling horizontal logo strip (CSS animation, 22 seconds, pauses on hover, with fade-out masks on left and right edges). Each logo sits inside a rounded dark gray card (min-width 140px, height 80px) that lightens on hover. Logos are grayscale at 70% opacity, becoming full color at full opacity on hover. The logos and their image URLs are: ServiceNow from https://www.technozis.com/static/images/services/servicenow.svg, Salesforce from https://www.technozis.com/static/images/services/salesforce.svg, PowerBI from https://www.technozis.com/static/images/services/powerbi.svg, AWS from https://www.technozis.com/static/images/services/aws.svg, Oracle from https://www.technozis.com/static/images/services/oracle.svg, SAP from https://www.technozis.com/static/images/services/cib_sap.svg, Generative AI from https://www.technozis.com/static/images/services/generativeai.svg. Duplicate the entire set of 7 logos immediately after for a seamless infinite loop.\n\nSECTION 3 — CERTIFICATIONS — Dark gray background bg-gray-950, bottom border white/10. Heading says \"We're officially certified by\" in bold white (text-2xl to text-3xl). Below it a gray subtext: \"Reflecting our credibility and positive workplace culture.\" Then two certification logos side by side centered with gap, each with a label underneath. First: image from https://www.technozis.com/static/images/gptw-cert.png, label \"Great Place to Work\". Second: image from https://www.technozis.com/static/images/duns.png, label \"D-U-N-S Registered\". Both images are height h-40, scale slightly on hover.\n\nSECTION 4 — PARTNER ECOSYSTEM — Black background, two-column layout (stacks on mobile). Left column has a photo from https://images.pexels.com/photos/3861969/pexels-photo-3861969.jpeg with rounded-2xl corners, a gradient overlay fading from black at the bottom to transparent, and a subtle scale hover effect. Right column has: heading \"A Trusted Global Partner Ecosystem and Community\" where \"Partner Ecosystem\" is in blue. Below it a gray paragraph: \"Technozis builds robust partnerships and fosters a global community of experts dedicated to enterprise-grade digital transformation. Our collaborative approach ensures impactful and sustainable results for our clients.\" Below that a 2x2 grid of stat cards, each with a blue bold number and a white label. The four stats are: 15+ Years of Enterprise Experience, 500+ Successful Enterprise Projects, 10+ Global Client Footprint, 100% Consistent Client Satisfaction. Each stat card has bg-gray-900 background, a left border in blue accent, rounded-xl, and lifts up on hover.\n\nSECTION 5 — ENTERPRISE CAPABILITIES — Dark gray background bg-gray-950. Section heading: \"Our Enterprise Capabilities\" with \"Enterprise Capabilities\" in blue. Subtext in gray: \"From strategic consulting to robust platform implementation and ongoing managed services, Technozis delivers comprehensive solutions designed to optimize your enterprise operations.\" Below that a 3-column responsive grid (1 col mobile, 2 col tablet, 3 col desktop) of 6 service cards. Each card has bg-gray-900, rounded-2xl, border that turns blue on hover, padding p-8, and a blue SVG icon at the top center that rotates slightly on hover. The 6 cards are:\nCard 1 — Use a platform/settings SVG icon. Title: \"ServiceNow Implementation & Optimization\". Description: \"End-to-end ServiceNow solutions, from initial deployment and configuration to custom application development and platform optimization.\"\nCard 2 — Use a code brackets SVG icon. Title: \"IT Service Management (ITSM) Solutions\". Description: \"Streamline IT operations with advanced ITSM strategies, incident, problem, change, and request management on leading enterprise platforms.\"\nCard 3 — Use a bar chart SVG icon. Title: \"Enterprise Workflow Automation\". Description: \"Automate complex business processes across departments, improving efficiency, reducing manual effort, and ensuring compliance.\"\nCard 4 — Use a currency/coin SVG icon. Title: \"Strategic Digital Transformation Consulting\". Description: \"Expert guidance to define your digital strategy, assess readiness, and navigate the journey to a more agile and efficient enterprise.\"\nCard 5 — Use a sliders/settings SVG icon. Title: \"Managed Services for Enterprise Platforms\". Description: \"Proactive monitoring, maintenance, and optimization of your enterprise platforms for continuous performance and business continuity.\"\nCard 6 — Use a cloud SVG icon. Title: \"Cloud & Infrastructure Modernization\". Description: \"Migrate and modernize legacy infrastructure to scalable cloud platforms aligned with your enterprise's growth objectives.\"\n\nSECTION 6 — PLATFORM IMPACT CAROUSEL — Black background. An auto-scrolling horizontal carousel (35 seconds, pauses on hover, fade-out masks on left and right). Each card is min-width 280px, semi-transparent white/5 background, white/10 border that turns blue/40 on hover, rounded-2xl, padding p-6. Each card has an image on top (h-40, object-contain), a small uppercase blue category label, and a white bold heading. The 5 cards are:\nCard 1 — Image from https://www.technozis.com/static/images/landing-carousel-1.svg, category \"ServiceNow\", heading \"Transforming ITSM with ServiceNow\"\nCard 2 — Image from https://www.technozis.com/static/images/landing-carousel-2.svg, category \"Salesforce\", heading \"CRM Modernization with Salesforce\"\nCard 3 — Image from https://www.technozis.com/static/images/landing-carousel-3.svg, category \"AWS\", heading \"Scaling Cloud Infrastructure on AWS\"\nCard 4 — Image from https://www.technozis.com/static/images/landing-carousel-4.svg, category \"Oracle\", heading \"Oracle ERP Transformation\"\nCard 5 — Image from https://www.technozis.com/static/images/landing-carousel-5.svg, category \"Microsoft\", heading \"Modern Workplace with Microsoft 365\"\nDuplicate all 5 cards for seamless looping.\n\nSECTION 7 — WHY PARTNER WITH TECHNOZIS — Black background. Heading: \"Why Partner with Technozis for Enterprise Success?\" Subtext: \"We combine deep domain expertise with a proven delivery model to ensure your enterprise achieves its strategic digital objectives.\" 4-column responsive grid of cards (1 col mobile, 2 col tablet, 4 col desktop). Each card has bg-gray-900, rounded-xl, border that turns blue on hover, lifts up on hover, and a centered blue SVG icon that rotates slightly on hover. The 4 cards are:\nCard 1 — Lightning bolt icon, title \"Domain Expertise\", description \"Specialized knowledge in ServiceNow, ITSM, and enterprise workflow automation for impactful solutions.\"\nCard 2 — Adjustments/sliders icon, title \"Proven Delivery Model\", description \"Reliable implementation frameworks and methodologies ensuring project success and timely delivery.\"\nCard 3 — Shield/check icon, title \"Strategic Partnership\", description \"Dedicated to long-term client success through collaborative engagement and tailored solutions.\"\nCard 4 — Currency/coin icon, title \"Measurable Business Outcomes\", description \"Focusing on solutions that deliver tangible ROI, operational efficiency, and sustained value.\"\n\nSECTION 8 — ENGINEERING TEAMS — Dark gray background bg-gray-950. Heading: \"Empowering Your Vision with Specialized Enterprise Engineering Teams\". Subtext: \"Access elite engineering talent deeply experienced in enterprise platforms, integrating seamlessly with your operations to bring specialized expertise and dedication to every transformation initiative.\" 4-column responsive card grid. Each card has bg-gray-900, rounded-xl, a bold blue left border (border-l-4), and lifts up on hover. The 4 cards are:\nCard 1 — \"Agile & ITIL Methodologies\" — \"Expert teams adopting Agile and ITIL frameworks for efficient, phased delivery.\"\nCard 2 — \"Scalable Platform Resources\" — \"Adjust resources dynamically to match the evolving needs of your enterprise projects.\"\nCard 3 — \"Dedicated Platform Experts\" — \"Engineers with deep platform knowledge, fully committed to your enterprise's strategic goals.\"\nCard 4 — \"Seamless IT Integration\" — \"Teams quickly integrate with your existing IT landscape and operational practices.\"\n\nSECTION 9 — CONSULTING — Black background, two-column layout (stacks on mobile). Left column has three numbered consulting steps stacked vertically. Each step is a card with bg-gray-900, a bold blue left border, rounded-xl, padding p-5, and lifts slightly on hover. The bold blue number is on the left and the text is on the right. The three steps are:\nStep 01 — \"Discovery & Strategic Roadmap\" — \"Comprehensive assessment of your current enterprise landscape, identifying key opportunities and crafting a robust digital transformation roadmap.\"\nStep 02 — \"Platform Architecture & Design\" — \"Designing scalable and resilient enterprise platform architectures (e.g., ServiceNow) that align with your strategic and operational goals.\"\nStep 03 — \"Implementation, Adoption & Optimization\" — \"Guiding the execution phase, ensuring seamless platform adoption, continuous optimization, and measurable value realization.\"\nThe heading above the steps reads: \"Strategic Enterprise Consulting, Tailored for Your Success\". Below the heading a gray paragraph: \"Navigate the complexities of enterprise digital transformation with Technozis' expert consulting services. We provide strategic guidance to optimize your ServiceNow and other platform investments, aligning technology with core business objectives.\"\nRight column has a photo from https://images.pexels.com/photos/7567434/pexels-photo-7567434.jpeg with rounded-2xl, gradient overlay fading from black at the bottom to transparent, and subtle scale hover.\n\nSECTION 10 — STATS — Dark gray background bg-gray-950. Heading: \"Our Enterprise Impact in Numbers\". 4-column responsive grid of stat cards. Each card has bg-gray-900, rounded-2xl, border that turns blue on hover, scales up slightly on hover, padding p-8. Each card shows a giant bold blue number, a white bold label, and a small gray description. The 4 stats are:\n98% — Enterprise Client Retention — \"A testament to our enduring partnerships and the value we deliver across large organizations.\"\n250+ — ServiceNow & Platform Experts — \"A global team with deep certifications and extensive experience in enterprise technology.\"\n30% — Operational Efficiency Gain — \"Delivering tangible business value through streamlined processes and optimized platform performance.\"\n1M+ — Enterprise Solution Engineering — \"Extensive experience in building, implementing, and maintaining robust enterprise-grade solutions.\"\n\nFOOTER — Thin white/10 top border, padding pt-16 pb-8. A 5-column grid (2 cols on mobile, 5 cols on desktop) separated by a bottom border from the copyright bar. The columns are:\nColumn 1 (spans 2 cols on mobile, 1 on desktop) — Technozis logo from https://www.technozis.com/static/images/brand-logo.svg at h-9. Below it gray text: \"We help businesses build, deploy, and operate offering premium professional services on various tech stacks.\" Below that 3 social icon buttons side by side — each is a small rounded square (w-9 h-9) with subtle white/5 background and white/10 border that turns blue on hover. The 3 icons are: LinkedIn linking to https://www.linkedin.com/company/technozis, Instagram linking to https://www.instagram.com/technozis/, and a chain-link/community icon linking to https://chat.whatsapp.com/Bu7OFoBvzV77wVNKyoiUjA. Use proper inline SVG paths for all 3 icons.\nColumn 2 — Heading \"OUR EXPERTISE\" (uppercase, small, white, semibold, letter-spaced). Items in small gray text: ServiceNow, Salesforce, Data Analytics, Open AI, Oracle, SAP, Cloud & Infra, Mobility & Development, Blockchain & Web3.\nColumn 3 — Heading \"BUSINESS\". Items: Professional Services & Build Teams, Managed IT Services, Develop & Operate.\nColumn 4 — Heading \"EMPLOYEES\". Items: Careers, Community, Culture, Open Roles.\nColumn 5 — Heading \"COMPANY\". Items: About Us.\nBelow all columns, a flex row showing on the left: \"India | Dubai | Australia | USA\" in light gray, center: \"DCG2-0210, DLF Corporate Green, Sector 74A, Gurugram, Haryana, 122004\" in gray, right: \"careers@technozis.com\" as a blue link.\nAt the very bottom, a thin white/10 divider line, then centered small gray copyright text: \"© 2025 Technozis. All Rights Reserved.\"",
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        432,
+        80
+      ],
+      "id": "cf0bb87a-733e-4d0f-8c71-732e55cf651d",
+      "name": "Webpage Generator"
+    },
+    {
+      "parameters": {
+        "jsCode": "const raw = $json[\"text\"] || \"\";\n\n// remove markdown\nlet cleaned = raw\n  .replace(/```html/g, \"\")\n  .replace(/```/g, \"\")\n  .trim();\n\n// extract html only\nconst match = cleaned.match(/<!DOCTYPE html>[\\s\\S]*/);\n\nreturn [\n  {\n    json: {\n      html: match ? match[0] : cleaned\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        736,
+        80
+      ],
+      "id": "6a7fc86a-c4af-44ef-9172-67613353c02c",
+      "name": "HTML Generator"
+    },
+    {
+      "parameters": {
+        "jsCode": "const raw = $json[\"text\"] || \"\";\n\n// remove markdown\nlet cleaned = raw\n  .replace(/```html/g, \"\")\n  .replace(/```/g, \"\")\n  .trim();\n\n// extract html only\nconst match = cleaned.match(/<!DOCTYPE html>[\\s\\S]*/);\n\nreturn [\n  {\n    json: {\n      html: match ? match[0] : cleaned\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        752,
+        400
+      ],
+      "id": "196711f9-5deb-4915-b697-6798350b6e24",
+      "name": "HTML Generator1"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are a senior frontend developer.\nGenerate a COMPLETE Contact Us page using HTML + TailwindCSS.\n--------------------------------------------------\n🚨 OUTPUT RULES\n- Return ONLY raw HTML\n- Start with <!DOCTYPE html>\n- MUST end with </html>\n- NO markdown, NO ```html, NO explanation\n--------------------------------------------------\n🚨 BACKGROUND LOCK (CRITICAL — MUST FOLLOW)\nAPPLY EXACTLY:\n<body class=\"bg-[#020617] text-white min-h-screen\">\nALSO ADD IN <head>:\n<style>\n  body { background-color: #020617 !important; color: white !important; }\n</style>\n--------------------------------------------------\n🚨 STRICT RULES\n❌ NEVER use: bg-white (except form card), bg-gray, bg-blue sections\n✔ ALL sections inherit dark background #020617\n✔ ALL headings → text-white\n✔ ALL body text → text-gray-300 or text-gray-400\n✔ NO dark text on dark background anywhere\n--------------------------------------------------\n🚨 NAVBAR\n<nav class=\"sticky top-0 z-50 bg-[#020617]/90 backdrop-blur-xl border-b border-white/10\">\n- Logo: <img src=\"https://www.technozis.com/static/images/brand-logo.svg\" class=\"h-8\">\n- Nav links: What we do | Careers | Business | About Us | Contact Us\n- Active link (Contact Us): class=\"text-blue-400 font-medium\"\n- CTA button: \"Get Started\" with bg-blue-600 hover:bg-blue-700 rounded-lg px-5 py-2\n--------------------------------------------------\n🚨 HERO SECTION\n<section class=\"relative py-20 dot-grid overflow-hidden\">\n- dot-grid CSS:\n  background-image: radial-gradient(circle, rgba(255,255,255,0.07) 1px, transparent 1px);\n  background-size: 28px 28px;\n- Glow orb top-right: bg-blue-500/10 w-96 h-96 blur-3xl rounded-full absolute\n- Small label badge: \"GET IN TOUCH\" → bg-blue-500/10 border border-blue-500/30 text-blue-400 rounded-full px-4 py-2 text-xs tracking-widest uppercase\n- H1: \"Let's Connect\" → text-5xl md:text-6xl font-bold text-white\n- Subtitle: \"Whether you're a client, partner, or future team member — we'd love to hear from you.\"\n  → text-gray-400 text-lg max-w-xl\n--------------------------------------------------\n🚨 CONTACT SECTION\n<div class=\"max-w-7xl mx-auto px-6 md:px-12 py-20\">\n  <div class=\"grid md:grid-cols-2 gap-12 items-start\">\n\nLEFT COLUMN — White Form Card:\n<div class=\"bg-white text-black rounded-2xl p-8 shadow-2xl\">\n  <h2 class=\"text-2xl font-bold text-gray-900 mb-2\">Send us a message</h2>\n  <p class=\"text-gray-500 text-sm mb-6\">We'll get back to you within 24 hours.</p>\n  Fields (each with label + styled input border-gray-200 rounded-lg p-3 w-full):\n  1. Full Name → type=\"text\" placeholder=\"Your full name\"\n  2. Email ID → type=\"email\" required placeholder=\"Work email address\"\n  3. Inquiry Type → <select> with options:\n     Please Select (disabled default) |\n     ServiceNow Partner Inquiry |\n     Vendor Registration |\n     General Inquiry |\n     Hiring / Careers\n  4. Message → <textarea rows=\"5\" placeholder=\"Tell us how we can help...\">\n  5. Submit button → full width, bg-blue-600 hover:bg-blue-700 text-white\n     font-semibold py-3 rounded-xl text-base → \"Send Message →\"\n\nRIGHT COLUMN — Dark Info Panel (no bg override, inherits #020617):\nWrap in: <div class=\"space-y-6\">\n\nCard 1 — Hiring / Careers:\n<div class=\"bg-white/5 border border-white/10 rounded-2xl p-6\">\n  - Icon circle: bg-blue-500/20 rounded-full w-10 h-10 with ✉ SVG text-blue-400\n  - Label: \"Hiring / Careers\" text-white font-semibold\n  - Value: careers@technozis.com → text-blue-400 hover:underline mailto link\n\nCard 2 — Office Info:\n<div class=\"bg-white/5 border border-white/10 rounded-2xl p-6\">\n  - Icon: 📍 location SVG text-blue-400\n  - Label: \"Office Info\" text-white font-semibold\n  - Address 1: 210, Tower 2, DLF Corporate Greens, Sector 74A, Gurugram, 122004\n  - Address 2: Ground Floor, Tapasya Corp heights, Sector 126, Noida, UP 201313\n  - Phone: 📞 +91 9996600068\n\nCard 3 — Follow Us:\n<div class=\"bg-white/5 border border-white/10 rounded-2xl p-6\">\n  - Label: \"Connect with us\" text-white font-semibold mb-4\n  - Three pill buttons side by side (flex gap-3 flex-wrap):\n    LinkedIn | Instagram | WhatsApp Community\n    Each: border border-blue-500/30 text-blue-400 rounded-full px-4 py-2 text-sm\n    hover:bg-blue-500/10 transition\n--------------------------------------------------\n🚨 FOOTER (EXACT STRUCTURE — MATCH THIS PRECISELY)\n\n<footer style=\"background:#020617; color:white;\" class=\"border-t border-white/10\">\n  <div class=\"max-w-7xl mx-auto px-6 md:px-12 pt-16 pb-8\">\n\n    <!-- 5-column grid -->\n    <div class=\"grid md:grid-cols-2 lg:grid-cols-5 gap-12 mb-12\">\n\n      <!-- COL 1: Brand (lg:col-span-2) -->\n      - Logo: <img src=\"https://www.technozis.com/static/images/brand-logo.svg\" class=\"h-8 mb-4\">\n      - Tagline: \"We help businesses build, deploy, and operate offering premium\n        professional services on various tech stacks.\" → text-gray-400 text-sm max-w-xs\n      - Social links (flex flex-col gap-2 mt-4 mb-4):\n        Each: flex items-center gap-2 text-gray-400 hover:text-blue-400 text-sm\n        * LinkedIn icon SVG → \"Join our LinkedIn\" → href=\"https://www.linkedin.com/company/technozis\"\n        * Instagram icon SVG → \"Join our Instagram\" → href=\"https://www.instagram.com/technozis/\"\n        * WhatsApp icon SVG → \"Join our Community Group\" → href=\"https://chat.whatsapp.com/Bu7OFoBvzV77wVNKyoiUjA\"\n      - Region line: \"India | Dubai | Australia | USA\" → text-gray-500 text-xs mt-2\n      - Address: \"DCG2-0210, DLF Corporate Green, Sector 74A, Gurugram, Haryana, 122004\"\n        → text-gray-500 text-xs mt-1\n      - Email: \"careers@technozis.com\" → text-gray-500 text-xs mt-1\n\n      <!-- COL 2: Our Expertise -->\n      Heading: text-white font-semibold text-sm mb-5\n      Links (text-gray-400 hover:text-blue-400 text-sm, space-y-3):\n      ServiceNow | Salesforce | Data Analytics | Open AI |\n      Oracle | SAP | Cloud & Infra | Mobility & Development | Blockchain & Web3\n\n      <!-- COL 3: Business + Employees -->\n      \"Business\" heading\n      Links: Professional Services & Build Teams | Managed IT Services | Develop & Operate\n      \"Employees\" heading (mt-8)\n      Links: Careers | Community | Culture | Open Roles\n\n      <!-- COL 4: Company -->\n      \"Company\" heading\n      Links: About Us\n\n    </div>\n\n    <!-- Bottom bar -->\n    <div class=\"border-t border-white/10 pt-8 flex flex-col md:flex-row justify-between items-center gap-4\">\n      <p class=\"text-gray-500 text-xs\">Copyright © 2025 Technozis. | All Rights Reserved</p>\n      <div class=\"flex gap-6\">\n        <a href=\"#\" class=\"text-gray-500 hover:text-white text-xs transition-colors\">Terms & Conditions</a>\n        <a href=\"#\" class=\"text-gray-500 hover:text-white text-xs transition-colors\">Privacy Policy</a>\n      </div>\n    </div>\n\n  </div>\n</footer>\n--------------------------------------------------\n🚨 FINAL VALIDATION — FIX BEFORE RETURNING\n✔ body background is #020617 dark — no white sections except form card\n✔ Navbar sticky with logo + nav links + Get Started button\n✔ Hero has dot-grid, glow orb, badge, H1, subtitle\n✔ Contact section has white form card LEFT + dark info cards RIGHT\n✔ Footer has 5-column grid with brand, expertise, business, employees, company\n✔ Footer bottom bar has copyright + terms + privacy\n✔ All text visible — no dark text on dark bg\n✔ No missing closing tags\n✔ LinkedIn, Instagram, WhatsApp SVG icons present in footer\n✔ No markdown, no fences, no explanation\n--------------------------------------------------\nRETURN FULL RAW HTML ONLY",
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        448,
+        400
+      ],
+      "id": "be6c121f-1829-4ddf-94e7-cb2f41f95d82",
+      "name": "Webpage 2 Generator"
+    },
+    {
+      "parameters": {
+        "content": "Webpage Genrator\n",
+        "height": 480,
+        "width": 288
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        416,
+        32
+      ],
+      "typeVersion": 1,
+      "id": "c49e490d-2838-4170-9183-0c6f1957c418",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "Agent\n",
+        "width": 150
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        720,
+        224
+      ],
+      "typeVersion": 1,
+      "id": "852c4d64-0bde-4d8e-9a94-f0050e195090",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "content": "Content Analyser\n",
+        "height": 496,
+        "width": 272
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        912,
+        32
+      ],
+      "typeVersion": 1,
+      "id": "2a8b7e0a-41df-4151-842d-4a4cbd1e5cc2",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "content": "Another Agent\n",
+        "width": 176
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        704,
+        544
+      ],
+      "typeVersion": 1,
+      "id": "fe157019-ce95-46af-acae-41a96168dc94",
+      "name": "Sticky Note3"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request1": {
+      "main": [
+        [
+          {
+            "node": "Webpage 2 Generator",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Webpage Generator",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mistral Cloud Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Webpage Generator",
+            "type": "ai_languageModel",
+            "index": 0
+          },
+          {
+            "node": "Content Analyzer ",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Webpage 2 Generator",
+            "type": "ai_languageModel",
+            "index": 0
+          },
+          {
+            "node": "2 Content Analyzer",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Content Analyzer ": {
+      "main": [
+        [
+          {
+            "node": "Final wedpage 1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "2 Content Analyzer": {
+      "main": [
+        [
+          {
+            "node": "Final wedpage 2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Final wedpage 2": {
+      "main": [
+        []
+      ]
+    },
+    "Final wedpage 1": {
+      "main": [
+        []
+      ]
+    },
+    "Webpage Generator": {
+      "main": [
+        [
+          {
+            "node": "HTML Generator",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTML Generator": {
+      "main": [
+        [
+          {
+            "node": "Content Analyzer ",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTML Generator1": {
+      "main": [
+        [
+          {
+            "node": "2 Content Analyzer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webpage 2 Generator": {
+      "main": [
+        [
+          {
+            "node": "HTML Generator1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "223f0c38-3975-49d4-8cdf-d5a148d83145",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "3f88a87f80be19c18841ad1103113801dfee770cad6e6afdec74a816c8a7bc07"
+  },
+  "id": "1ZSQMfDUhZIIshi0",
+  "tags": []
+}
